@@ -1,0 +1,14 @@
+version: "3.1"
+
+services:
+  node: 
+    container_name: "jdc-bot"
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/usr/app/
+    command: ["node",'app.js']
