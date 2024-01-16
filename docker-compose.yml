@@ -1,14 +1,41 @@
 version: "3.1"
 
 services:
-  node: 
+  node:
     container_name: "jdc-bot"
     restart: on-failure
+    environment:
+      APP_ID: $APP_ID
+      DISCORD_TOKEN: $DISCORD_TOKEN
+      PUBLIC_KEY: $PUBLIC_KEY
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
+    networks:
+      - redirecionamento
     volumes:
       - .:/usr/app/
-    command: ["node",'app.js']
+    command: [ "node",'app.js' ]
+  apache:
+    container_name: "jdc-apache"
+    build:
+      context: .
+      dockerfile: apache.dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www/html/
+    depends_on:
+      - node
+    networks:
+      - redirecionamento
+#  localtunnel:
+#    image: efrecon/localtunnel
+#    restart: on-failure
+#    links:
+#      - node
+#    depends_on:
+#      - node
+networks:
+  redirecionamento:
+    driver: bridge
