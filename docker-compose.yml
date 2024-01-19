@@ -8,6 +8,9 @@ services:
       APP_ID: $APP_ID
       DISCORD_TOKEN: $DISCORD_TOKEN
       PUBLIC_KEY: $PUBLIC_KEY
+      JDC_API_URL: $JDC_API_URL
+      JDC_API_PORT: $JDC_API_PORT
+      JDC_API_KEY: $JDC_API_KEY
     build:
       context: .
       dockerfile: Dockerfile
@@ -29,13 +32,6 @@ services:
       - node
     networks:
       - redirecionamento
-#  localtunnel:
-#    image: efrecon/localtunnel
-#    restart: on-failure
-#    links:
-#      - node
-#    depends_on:
-#      - node
 networks:
   redirecionamento:
     driver: bridge

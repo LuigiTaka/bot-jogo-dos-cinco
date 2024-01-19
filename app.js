@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
 import express, {request} from 'express';
 import {
     InteractionType,
@@ -16,12 +16,19 @@ import {
     fazerRequisicaoHTTPComBearerToken
 } from './utils.js';
 
+await dotenv.configDotenv();
 // Create an express app
 const app = express();
 // Get port, or default to 3000
 const PORT = process.env.PORT || 3000;
-const API_PORT = process.env.API_PORT
-const API_URL = `http://localhost${API_PORT}`
+
+
+if (!process.env.JDC_API_URL) {
+    throw Error("URL da API inválida: " + process.env.JDC_API_URL);
+}
+
+const API_URL = `${process.env.JDC_API_URL}`
+
 // Parse request body and verifies incoming requests using discord-interactions package
 app.use(express.json({verify: VerifyDiscordRequest(process.env.PUBLIC_KEY)}));
 
@@ -123,26 +130,36 @@ app.post('/interactions', async function (req, res) {
 
         if (name === 'pergunta') {
             // Send a message into the channel where command was triggered from
-            let perguntaResult = await fazerRequisicaoGET(`${API_URL}/api/pergunta`);
-            let pergunta = 'Sem pergunta';
+            try {
+                let perguntaResult = await fazerRequisicaoGET(`${API_URL}/api/pergunta`);
 
-            if (perguntaResult.hasOwnProperty("pergunta")) {
-                pergunta = perguntaResult.pergunta;
+                let pergunta = 'Sem pergunta';
+                if (perguntaResult.hasOwnProperty("pergunta")) {
+                    pergunta = perguntaResult.pergunta;
+                }
+
+                setPergunta(pergunta);
+                //@todo Talvez usar o id do usuário.
+                startGame(guild_id);
+
+
+                return res.send({
+                    type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                    data: {
+                        // Fetches a random emoji to send from a helper function
+                        content: pergunta,
+                    },
+                });
+            } catch (e) {
+
+                return res.send({
+                    type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                    data: {
+                        // Fetches a random emoji to send from a helper function
+                        content: `Erro no servidor. ${e}`,
+                    },
+                });
             }
-
-
-            setPergunta(pergunta);
-            //@todo Talvez usar o id do usuário.
-            startGame(guild_id);
-
-
-            return res.send({
-                type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: {
-                    // Fetches a random emoji to send from a helper function
-                    content: pergunta,
-                },
-            });
         }
 
 

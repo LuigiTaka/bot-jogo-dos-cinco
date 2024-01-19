@@ -56,19 +56,24 @@ export async function fazerRequisicaoHTTPComBearerToken(url, metodo, dados, toke
 
 export async function fazerRequisicaoGET(url) {
   try {
-    // Faz a requisição GET
     const resposta = await fetch(url);
 
     // Verifica se a requisição foi bem-sucedida (status 2xx)
+
+    if (resposta.status === 401){
+      throw new Error("Não autorizado!");
+    }
+
     if (!resposta.ok) {
-      throw new Error(`Erro na requisição GET: ${resposta.status} - ${resposta.statusText}`);
+      let status = resposta.status ||"Sem status",
+      statusText = resposta.statusText || "Sem status text";
+      throw new Error(`Erro na requisição GET: ${status} - ${statusText}`);
     }
 
     // Converte a resposta para JSON e retorna os dados
     return await resposta.json();
   } catch (erro) {
     // Trata erros, por exemplo, logando no console
-    console.error(erro.message);
     throw erro; // Lança o erro novamente para que seja tratado no código que chama a função, se necessário
   }
 }
