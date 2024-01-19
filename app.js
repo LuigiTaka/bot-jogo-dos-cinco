@@ -15,7 +15,6 @@ import {
     setPergunta,
     fazerRequisicaoHTTPComBearerToken
 } from './utils.js';
-import {getShuffledOptions, getResult} from './game.js';
 
 // Create an express app
 const app = express();
@@ -23,9 +22,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 // Parse request body and verifies incoming requests using discord-interactions package
 app.use(express.json({verify: VerifyDiscordRequest(process.env.PUBLIC_KEY)}));
-
-// Store for in-progress games. In production, you'd want to use a DB
-const activeGames = {};
 
 const partidas= new Map();
 
@@ -119,7 +115,7 @@ app.post('/interactions', async function (req, res) {
                 type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
                 data: {
                     // Fetches a random emoji to send from a helper function
-                    content: 'hello world ' + getRandomEmoji(),
+                    content: 'Mensagem de teste!  ' + getRandomEmoji(),
                 },
             });
         }
@@ -189,7 +185,7 @@ app.post('/interactions', async function (req, res) {
             let response = fazerRequisicaoHTTPComBearerToken("http://localhost/api/pergunta","PUT",{
                 pergunta: pergunta.value,
                 respostas: [resposta.value]
-            },"97a150fa8476669a43100b0e37ed55f6bad86cf49ca74e5b90e2caa233ae6821bc947e97ba8183097e6a059a9d7fbdcc4ec5cf100cc8c998165d1398c27579be").then( (response) => {
+            },process.env.JDC_API_KEY).then( (response) => {
                 console.log( response );
             } ).catch( (e) => {
                 console.log( e );
