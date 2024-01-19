@@ -20,55 +20,56 @@ import {
 const app = express();
 // Get port, or default to 3000
 const PORT = process.env.PORT || 3000;
+const API_PORT = process.env.API_PORT
+const API_URL = `http://localhost${API_PORT}`
 // Parse request body and verifies incoming requests using discord-interactions package
 app.use(express.json({verify: VerifyDiscordRequest(process.env.PUBLIC_KEY)}));
 
-const partidas= new Map();
+const partidas = new Map();
 
 const PARTIDA_DATA = {
     idChat: "",
     rodada: 5,
     pergunta: "",
-    respostas: {
-    }
+    respostas: {}
 }
 
-function startGame( idChat ) {
-    partidas.set( idChat, Object.assign({}, PARTIDA_DATA) );
+function startGame(idChat) {
+    partidas.set(idChat, Object.assign({}, PARTIDA_DATA));
 }
 
-function adicionaResposta(idChat, idUsario, nick ,resposta) {
+function adicionaResposta(idChat, idUsario, nick, resposta) {
 
-    let partida = partidas.get( idChat );
+    let partida = partidas.get(idChat);
     if (!partida) {
         return false;
     }
 
-    if ( !partida.respostas.hasOwnProperty( idUsario ) ){
-        partida.respostas[ idUsario ] = {
+    if (!partida.respostas.hasOwnProperty(idUsario)) {
+        partida.respostas[idUsario] = {
             nick: nick,
-            respostas: [  ]
+            respostas: []
         }
     }
 
-    partida.respostas[ idUsario ].respostas.push( resposta );
+    partida.respostas[idUsario].respostas.push(resposta);
 }
 
 function fimPergunta(idChat) {
 
-    if (!partidas.has(idChat)){
+    if (!partidas.has(idChat)) {
         return "Nenhum jogo iniciado!";
     }
 
-    let dados = partidas.get( idChat );
+    let dados = partidas.get(idChat);
 
     let mensagem = ``;
     for (const usuarioId in dados.respostas) {
         let respostas = dados.respostas[usuarioId].respostas.join("\n");
-        mensagem = mensagem.concat("\n",`\t${dados.respostas[usuarioId].nick} \n ${respostas}`);
+        mensagem = mensagem.concat("\n", `\t${dados.respostas[usuarioId].nick} \n ${respostas}`);
     }
 
-    partidas.delete( idChat );
+    partidas.delete(idChat);
 
     return mensagem;
 
@@ -92,7 +93,7 @@ function fimPergunta(idChat) {
  */
 app.post('/interactions', async function (req, res) {
     // Interaction type and data
-    const {type, id, data, guild_id, member } = req.body;
+    const {type, id, data, guild_id, member} = req.body;
 
     /**
      * Handle verification requests
@@ -122,7 +123,7 @@ app.post('/interactions', async function (req, res) {
 
         if (name === 'pergunta') {
             // Send a message into the channel where command was triggered from
-            let perguntaResult = await fazerRequisicaoGET("http://localhost/api/pergunta");
+            let perguntaResult = await fazerRequisicaoGET(`${API_URL}/api/pergunta`);
             let pergunta = 'Sem pergunta';
 
             if (perguntaResult.hasOwnProperty("pergunta")) {
@@ -130,7 +131,7 @@ app.post('/interactions', async function (req, res) {
             }
 
 
-            setPergunta( pergunta );
+            setPergunta(pergunta);
             //@todo Talvez usar o id do usuário.
             startGame(guild_id);
 
@@ -148,11 +149,11 @@ app.post('/interactions', async function (req, res) {
         if (name === "resposta") {
             const idUsuario = member.user.id;
             const resposta = req.body.data.options[0].value;
-            adicionaResposta(guild_id,idUsuario, member.user.username ,resposta);
+            adicionaResposta(guild_id, idUsuario, member.user.username, resposta);
             //Queremos pegar a resposta e adicionar em uma lista com todas as respostas. O problema é:
             return res.send({
                 type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                data:{
+                data: {
                     content: "Resposta registrada!"
                 }
             });
@@ -182,14 +183,14 @@ app.post('/interactions', async function (req, res) {
 
             //@todo Agora a gente não vai esperar nem nada, só executar
             //  afinal a gente nem verifica as respostas enviadas nem nada. AINDA...!
-            let response = fazerRequisicaoHTTPComBearerToken("http://localhost/api/pergunta","PUT",{
+            let response = fazerRequisicaoHTTPComBearerToken(`${API_URL}/api/pergunta`, "PUT", {
                 pergunta: pergunta.value,
                 respostas: [resposta.value]
-            },process.env.JDC_API_KEY).then( (response) => {
-                console.log( response );
-            } ).catch( (e) => {
-                console.log( e );
-            } )
+            }, process.env.JDC_API_KEY).then((response) => {
+                console.log(response);
+            }).catch((e) => {
+                console.log(e);
+            })
 
             return res.send({
                 type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
