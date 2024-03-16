@@ -13,6 +13,10 @@ para obter essas informações. Além disso, opcionalmente, você pode definir a
 arquivo ``.env`` para utilizar a API do projeto disponível
 em [API do Jogo dos Cinco](https://github.com/LuigiTaka/api-jogo-dos-cinco).
 
+Para podermos utilizar o bot normalmente no discord, iremos definir uma URL de proxy
+utilizando [localtunnel](https://theboroer.github.io/localtunnel-www/),
+siga os passos para instalar a ferramenta.
+
 ### 2. Executando o Projeto
 
 Use os seguintes comandos para construir e executar o projeto:
@@ -29,6 +33,22 @@ Depois de executar o projeto, você pode configurar os comandos necessários com
 ```shell
 docker exec jdc-bot bash -c "cd /usr/app && npm run register"
 ```
+
+### 4. Executando o servidor com localtunnel
+
+Para o bot ser acessado pelos servidores do Discord, criaremos uma URL para servir de proxy para as conexões
+com o nosso servidor local
+
+````shell
+lt --port 80
+# saída > your url is: https://urldeexemplo.com
+````
+
+Agora copie a URL gerada pelo localtunnel e defina "INTERACTIONS ENDPOINT URL" com a URL fornecedia.
+
+````shell
+https://urldeexemplo.com/interactions
+````
 
 ## Comandos Disponíveis
 
